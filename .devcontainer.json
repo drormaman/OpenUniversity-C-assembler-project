@@ -1,0 +1,11 @@
+{
+    "image": "ubuntu:16.04",
+    "forwardPorts": [
+        3000
+    ],
+    "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-vscode.cpptools"
+    ],
+    "onCreateCommand": "apt-get update && apt-get install -y gcc"
+}
