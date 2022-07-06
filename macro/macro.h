@@ -1,8 +1,6 @@
 #ifndef MACRO_H
 #define MACRO_H
 
-#include <stdlib.h>
-#include <string.h>
 #include "../files/files.h"
 
 #define MAX_MACRO_NAME_LENGTH 31

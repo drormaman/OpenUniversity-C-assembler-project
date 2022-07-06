@@ -2,10 +2,6 @@
 #define FILES_S
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 #define MAX_LINE_LENGTH 80
 #define MAX_FILE_NAME_LENGTH 31
 #define READ "r"

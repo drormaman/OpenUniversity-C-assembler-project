@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "macro.h"
 
 Macro *newMacro(char *name, char *text)
