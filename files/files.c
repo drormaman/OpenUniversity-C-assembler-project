@@ -3,12 +3,12 @@
 #include <ctype.h>
 #include "files.h"
 
-FILE *openReadFile(char *filename)
+FILE *openReadFile(char *filename, char *ext)
 {
     FILE *fp;
     char file_with_ext[MAX_FILE_NAME_LENGTH];
     strcpy(file_with_ext, filename);
-    strcat(file_with_ext, ".as");
+    strcat(file_with_ext, ext);
     fp = fopen(file_with_ext, READ);
     if (!fp)
     {

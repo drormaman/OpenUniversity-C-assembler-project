@@ -7,6 +7,8 @@
 #define READ "r"
 #define WRITE "w"
 
-FILE *openReadFile(char *filename);
+typedef char Line[MAX_LINE_LENGTH + 1];
+
+FILE *openReadFile(char *filename, char *ext);
 FILE *openWriteFile(char *filename, char *ext);
 #endif

@@ -5,17 +5,16 @@
 
 void preAssembler(char *filename)
 {
-
     FILE *fpr, *fpw;
     Macro *r_macro = NULL;
     Macro *tmp_macro;
     char new_macro_name[MAX_MACRO_NAME_LENGTH] = {0};
     char new_macro_text[MAX_LINE_LENGTH * MAX_MACRO_LINES] = {0};
     char word[MAX_MACRO_NAME_LENGTH] = {0};
-    char line[MAX_LINE_LENGTH];
+    Line line;
     char in_macro = 0;
 
-    fpr = openReadFile(filename);
+    fpr = openReadFile(filename, ".as");
     fpw = openWriteFile(filename, ".am");
 
     while (fgets(line, 80, fpr) != NULL)
