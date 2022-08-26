@@ -20,8 +20,6 @@ void addSymbol(Symbol **root, Label name, unsigned char address, bool isop, bool
 {
     Symbol *curr;
     Symbol *new_symbol = newSymbol(name, address, isop, isext);
-    printf("Symbol Address %d --- %d\n", root, *root);
-    printf("new symbol  %d \n", new_symbol);
     if (new_symbol)
     {
         if (*root == NULL)
