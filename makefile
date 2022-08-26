@@ -14,5 +14,5 @@ firstphase.o: ./firstphase/firstphase.c ./firstphase/firstphase.h ./strings/stri
 	gcc -c -ansi -pedantic -Wall ./firstphase/firstphase.c -o firstphase.o
 symbols.o: ./symbols/symbols.c ./symbols/symbols.h ./assembler/assembler.h ./strings/strings.h
 	gcc -c -ansi -pedantic -Wall ./symbols/symbols.c -o symbols.o
-methods.o: ./methods/methods.c ./methods/methods.h
+methods.o: ./methods/methods.c ./methods/methods.h ./strings/strings.h
 	gcc -c -ansi -pedantic -Wall ./methods/methods.c -o methods.o
