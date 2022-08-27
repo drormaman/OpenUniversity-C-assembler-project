@@ -6,7 +6,7 @@ preassembler.o: ./preassembler/preassembler.c ./preassembler/preassembler.h ./ma
 	gcc -c -ansi -pedantic -Wall ./preassembler/preassembler.c -o preassembler.o
 macro.o: ./macro/macro.c ./macro/macro.h ./files/files.h ./strings/strings.h
 	gcc -c -ansi -pedantic -Wall ./macro/macro.c -o macro.o
-files.o: ./files/files.c ./files/files.h
+files.o: ./files/files.c ./files/files.h ./strings/strings.h
 	gcc -c -ansi -pedantic -Wall ./files/files.c -o files.o
 strings.o: ./strings/strings.c ./strings/strings.h ./files/files.h
 	gcc -c -ansi -pedantic -Wall ./strings/strings.c -o strings.o

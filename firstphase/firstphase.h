@@ -5,6 +5,12 @@
 #include "../symbols/symbols.h"
 #include "../methods/methods.h"
 
-int firstAssemblerMain(char *filename, word code_img[255], word data_img[255], unsigned char *IC, unsigned char *DC, Symbol *symbol_table, const op_metadata *methods_list);
+#define DATA ".data"
+#define STRUCT ".struct"
+#define STRING ".string"
+#define ENTRY ".entry"
+#define EXTERN ".extern"
+
+int firstphase(char *filename, words_img code_img, words_img data_img, unsigned char *IC, unsigned char *DC, symbol *symbol_table_root, const cmd_metadata *cmds_metadata_list);
 
 #endif

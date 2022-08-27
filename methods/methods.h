@@ -1,26 +1,27 @@
 #ifndef METHODS_H
 #define METHODS_H
 
-#define NUMBER_OF_OPERATIONS 16
-#define OPERATIONS_NAME_LENGTH 4
-#define MAX_NUMBER_OF_ADDRESSING_METHODS 4
 #include "../strings/strings.h"
 
-typedef enum
-{
-    absolute,
-    external,
-    relocateable
-} type_values;
-
-typedef enum
-{
-    none = -1,
-    immediate,
-    direct,
-    struct_access,
-    dir_register
-} addressing_values;
+#define NUMBER_OF_COMMANDS 16
+#define COMMAND_NAME_LENGTH 3
+#define MOV "mov"
+#define CMP "cmp"
+#define ADD "add"
+#define SUB "sub"
+#define NOT "not"
+#define CLR "clr"
+#define LEA "lea"
+#define INC "inc"
+#define DEC "dec"
+#define JMP "jmp"
+#define BNE "bne"
+#define GET "get"
+#define PRN "prn"
+#define JSR "jsr"
+#define RTS "rts"
+#define HLT "hlt"
+#define PSW "PSW"
 
 typedef enum
 {
@@ -40,40 +41,66 @@ typedef enum
     jsr,
     rts,
     hlt
-} opcode_values;
+} cmd_code;
 
-typedef char method_name[3];
-typedef short valid_addressing_values[4];
+typedef enum
+{
+    absolute,
+    external,
+    relocateable
+} encode_type_value;
+
+typedef enum
+{
+    none = -1,
+    immediate,
+    direct,
+    struct_access,
+    dir_register,
+} address_type_value;
+
+typedef enum
+{
+    no_operands = 0,
+    direct_and_struct_access = 6,
+    all_no_immediate = 14,
+    all = 15,
+} valid_address_type;
+
+typedef enum
+{
+    group3,
+    group2,
+    group1,
+} cmd_args_num;
+
+typedef char cmd_name[COMMAND_NAME_LENGTH + 1];
+
+typedef union
+{
+    /*Todo maybe not needed */
+    struct
+    {
+        unsigned int immediate : 1;
+        unsigned int direct : 1;
+        unsigned int struct_access : 1;
+        unsigned int dir_register : 1;
+    };
+    unsigned int total : 4;
+} cmd_valid_address_type;
+
 typedef struct
 {
-    unsigned int immediate : 1;
-    unsigned int direct : 1;
-    unsigned int struct_access : 1;
-    unsigned int dir_register : 1;
-} valid_addressing_methods_bit;
-typedef struct
-{
-    unsigned int all : 4;
-} valid_addressing_methods_all;
+    cmd_name name;
+    cmd_code code;
+    cmd_valid_address_type valid_src;
+    cmd_valid_address_type valid_dst;
+    cmd_args_num valid_args_num;
+} cmd_metadata;
 
-typedef union valid_addressing_methods
-{
-    valid_addressing_methods_bit bit;
-    valid_addressing_methods_all all;
-} valid_addressing_methods;
-
-typedef struct
-{
-    method_name name;
-    short code;
-    valid_addressing_methods valid_source;
-    valid_addressing_methods valid_dest;
-    short valid_operands_num;
-} op_metadata;
-
-void initOpMetadata(op_metadata **list_ptr);
-op_metadata *findOpMetadata(op_metadata *list, char *op_name);
-addressing_values getAddressingType(char *operand);
-bool isValidOperand(op_metadata *cmd_info, addressing_values op_type, bool is_src);
+void initCmdList(cmd_metadata *list_ptr);
+cmd_metadata *getCmdMetadata(cmd_metadata *list, char *name);
+address_type_value getOpearndAddressType(char *operand);
+bool isValidOperand(cmd_metadata *cmd_info, address_type_value op_type, bool is_src);
 
 #endif

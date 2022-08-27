@@ -2,9 +2,9 @@
 #include <string.h>
 #include "symbols.h"
 
-Symbol *newSymbol(Label name, unsigned char address, bool isop, bool isext)
+symbol *newSymbol(label name, unsigned char address, bool isop, bool isext)
 {
-    Symbol *tmp = (Symbol *)malloc(sizeof(Symbol));
+    symbol *tmp = (symbol *)malloc(sizeof(symbol));
     if (tmp)
     {
         strcpy(tmp->name, name);
@@ -16,10 +16,10 @@ Symbol *newSymbol(Label name, unsigned char address, bool isop, bool isext)
     return tmp;
 }
 
-void addSymbol(Symbol **root, Label name, unsigned char address, bool isop, bool isext)
+void addSymbol(symbol **root, label name, unsigned char address, bool isop, bool isext)
 {
-    Symbol *curr;
-    Symbol *new_symbol = newSymbol(name, address, isop, isext);
+    symbol *tmp, *new_symbol;
+    new_symbol = newSymbol(name, address, isop, isext);
     if (new_symbol)
     {
         if (*root == NULL)
@@ -28,25 +28,25 @@ void addSymbol(Symbol **root, Label name, unsigned char address, bool isop, bool
         }
         else
         {
-            for (curr = *root; curr->next != NULL; curr = curr->next)
+            for (tmp = *root; tmp->next != NULL; tmp = tmp->next)
                 ;
-            curr->next = new_symbol;
+            tmp->next = new_symbol;
         }
     }
     return;
 }
 
-Symbol *isExistingSymbol(Symbol *table, Label name)
+symbol *isExistingSymbol(symbol *table, label name)
 {
-    Symbol *curr;
-    for (curr = table; curr != NULL && strcmp(curr->name, name); curr = curr->next)
+    symbol *tmp;
+    for (tmp = table; tmp != NULL && strcmp(tmp->name, name); tmp = tmp->next)
         ;
-    return curr;
+    return tmp;
 }
 
-void freeSymbols(Symbol *root)
+void freeSymbols(symbol *root)
 {
-    Symbol *tmp;
+    symbol *tmp;
     while (root != NULL)
     {
         tmp = root;
@@ -55,9 +55,9 @@ void freeSymbols(Symbol *root)
     }
 }
 
-void printSymbols(Symbol *root)
+void printSymbols(symbol *root)
 {
-    Symbol *curr;
+    symbol *curr;
     printf("-----------------------------\n");
     for (curr = root; curr != NULL; curr = curr->next)
     {

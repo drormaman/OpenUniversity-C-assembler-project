@@ -4,19 +4,18 @@
 #include "../files/files.h"
 #include "../strings/strings.h"
 
-#define MAX_MACRO_NAME_LENGTH 31
-#define MAX_MACRO_LINES 10
+#define MAX_MACRO_LINES 20
 
-typedef struct Macro
+typedef struct macro
 {
-    Label name;
+    label name;
     char text[MAX_MACRO_LINES * MAX_LINE_LENGTH];
-    struct Macro *next;
-} Macro;
+    struct macro *next;
+} macro;
 
-void addMacro(Macro **root, Label name);
-void loopMacro(Macro *root);
-Macro *isExistingMacro(Macro *root, char *line);
-void freeMacros(Macro *root);
+void addMacro(macro **root, label name);
+void loopMacro(macro *root);
+macro *isExistingMacro(macro *root, char *line);
+void freeMacros(macro *root);
 
 #endif

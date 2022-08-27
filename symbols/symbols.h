@@ -4,19 +4,19 @@
 #include "../strings/strings.h"
 #include "../assembler/assembler.h"
 
-typedef struct Symbol
+typedef struct symbol
 {
-    Label name;
+    label name;
     unsigned char address;
     bool isop;
     bool isext;
-    struct Symbol *next;
-} Symbol;
+    struct symbol *next;
+} symbol;
 
-Symbol *newSymbol(Label name, unsigned char address, bool isop, bool isext);
-void addSymbol(Symbol **root, Label name, unsigned char address, bool isop, bool isext);
-Symbol *isExistingSymbol(Symbol *table, Label name);
-void freeSymbols(Symbol *root);
-void printSymbols(Symbol *root);
+symbol *newSymbol(label name, unsigned char address, bool isop, bool isext);
+void addSymbol(symbol **root, label name, unsigned char address, bool isop, bool isext);
+symbol *isExistingSymbol(symbol *table, label name);
+void freeSymbols(symbol *root);
+void printSymbols(symbol *root);
 
 #endif

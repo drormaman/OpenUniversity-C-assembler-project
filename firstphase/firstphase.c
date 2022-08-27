@@ -9,94 +9,119 @@
 #include "../assembler/assembler.h"
 #include "../methods/methods.h"
 
-#define DATA ".data"
-#define STRUCT ".struct"
-#define STRING ".string"
-#define ENTRY ".entry"
-#define EXTERN ".extern"
+int encodeDataline(words_img data_img, char *type, char *line, unsigned char DC);
+int encodeOpline(words_img code_img, char *line, unsigned char IC, const cmd_metadata *cmds_metadata_list);
 
-int encodeDataline(word data_img[255], char *line, unsigned char *DC, Symbol **symbol_table);
-int encodeOpline(word code_img[255], char *line, unsigned char *IC, Symbol **symbol_table, const op_metadata *methods_list);
-
-int firstAssemblerMain(char *filename, word code_img[255], word data_img[255], unsigned char *IC, unsigned char *DC, Symbol *symbol_table, const op_metadata *methods_list)
+int firstphase(char *filename, words_img code_img, words_img data_img, unsigned char *IC, unsigned char *DC, symbol *symbol_table_root, const cmd_metadata *cmds_metadata_list)
 {
     FILE *fd;
-    Line full_line, rest_line;
-    bool in_symbol = false;
-    Label symbol_name;
-    Label curr_word;
-    int res, i;
+    line full_line, trimed_line;
+    bool in_symbol = false, is_empty_line = false, ignore_line = false;
+    label symbol_name;
+    char *cp, *rest_line, *tmp_word;
+    int res, i, tmp;
 
-    fd = openReadFile(filename, ".am");
-    while (fgets(full_line, 80, fd) != NULL)
+    printf("\n----------FIRSTPHASE-START-----------\n");
+    fd = openReadFile(filename, AFTER_MACROS_FILE_EXT);
+    while (fgets(full_line, MAX_LINE_LENGTH, fd) != NULL)
     {
+        printf("\n----------FIRSTPHASE-WHILE IC: %d, DC: %d\n", *IC, *DC);
+        is_empty_line = isEmptyString(full_line);
+        if (!is_empty_line)
+            strcpy(trimed_line, trim(full_line));
+
         /* check if line is not empty or a comment */
-        if (!isEmptyString(full_line) || full_line[0] == ';')
+        ignore_line = is_empty_line || (!is_empty_line && trimed_line[0] == COMMENT_SIGN);
+
+        if (!ignore_line)
         {
+            printf("not ignoring line: '%s'\n", trimed_line);
             /* check if line starts with a label - step 3 */
-            /* printf("first %d", strstr(full_line, ":")); */
-            if (strstr(full_line, ":"))
+            if ((cp = strchr(trimed_line, LABEL_SIGN)))
             {
-                strcpy(symbol_name, strtok(full_line, ":"));
+                tmp = (cp - trimed_line);
+                strncpy(symbol_name, trimed_line, tmp);
+                symbol_name[tmp] = NULL;
                 if (isValidLabel(symbol_name))
+                    if (!isExistingSymbol(symbol_table_root, symbol_name))
+                        in_symbol = true;
+                    else
+                        printf("Error: label already exists\n");
+                else
+                    printf("Error: invalid label name\n");
+            }
+
+            rest_line = in_symbol ? trim(cp + 1) : trimed_line;
+            if (rest_line[0] == DOT)
+            {
+                cp = strchr(rest_line, SPACE);
+                tmp = (cp - rest_line);
+
+                if (!strncmp(rest_line, EXTERN, tmp))
                 {
-                    in_symbol = true; /* step 4 */
+                    tmp_word = strtok(rest_line + tmp, SPACE_STR);
+                    while (tmp_word != NULL)
+                    {
+
+                        if (isValidLabel(tmp_word))
+                            if (!isExistingSymbol(symbol_table_root, tmp_word))
+                                addSymbol(&symbol_table_root, tmp_word, 0, false, true);
+                            else
+                                printf("Error: label already exists\n");
+                        else
+                            printf("Error: invalid label name\n");
+                        tmp_word = strtok(NULL, SPACE_STR);
+                    }
+                }
+                else if (!strncmp(rest_line, ENTRY, tmp))
+                {
+                    /* todo handle entry
+                    tmp_word = strtok(rest_line+tmp, SPACE_STR);
+                    while (tmp != NULL)
+                    {
+                        if (isValidLabel(tmp))
+                            if (!isExistingSymbol(symbol_table_root, tmp_word))
+                                addSymbol(&symbol_table_root, tmp_word, 0, false, false);
+                            else
+                                printf("Error: label already exists\n");
+                        else
+                            printf("Error: invalid label name\n");
+                        tmp_word = strtok(NULL, SPACE_STR);
+                    }*/
                 }
                 else
                 {
-                    printf("Error: Bad label name\n");
+                    /*
+                        add to symbol (name, curr DC, isop = false, isext = false, next = NULL)
+                        if symbol already found - print error
+                        encode the data in data_img and update DC
+                    */
+                    tmp_word = rest_line;
+                    rest_line[tmp] = 0;
+                    rest_line += (tmp + 1);
+                    printf("\n rest_line: '%s', tmp_word: '%s'", rest_line, tmp_word);
+                    if (in_symbol)
+                        addSymbol(&symbol_table_root, symbol_name, *DC, false, false);
+                    (*DC) += encodeDataline(data_img, tmp_word, rest_line, *DC);
                 }
-            }
-
-            strcpy(rest_line, trimLeft(strtok(in_symbol ? NULL : full_line, "\n")));
-            if (rest_line[0] == '.')
-            {
-                /*
-                    add to symbol (name, curr DC, isop = false, isext = 0, next = NULL)
-                    if symbol already found - print error
-                    encode the data in data_img and update DC
-                */
-                if (in_symbol)
-                {
-
-                    if (!isExistingSymbol(symbol_table, symbol_name))
-                    {
-                        addSymbol(&symbol_table, symbol_name, *DC, false, false);
-                    }
-                    else
-                    {
-                        printf("Error: symbol already existing\n");
-                    }
-                }
-                encodeDataline(data_img, rest_line, DC, &symbol_table);
             }
             else
             {
-                /*printf("\n%s\t%s", in_symbol ? symbol_name : "", rest_line);*/
                 /*
                     add to symbol (name, curr IC, isop = true, isext = 0, next = NULL)
                     if symbol already found - print error
                     encode the data in data_img and update DC
                 */
                 if (in_symbol)
-                {
-
-                    if (!isExistingSymbol(symbol_table, symbol_name))
-                    {
-                        addSymbol(&symbol_table, symbol_name, *IC, true, false);
-                    }
-                    else
-                    {
-                        printf("Error: symbol already existing\n");
-                    }
-                }
-                encodeOpline(code_img, rest_line, IC, &symbol_table, methods_list);
+                    addSymbol(&symbol_table_root, symbol_name, *IC, true, false);
+                (*IC) += encodeOpline(code_img, rest_line, *IC, cmds_metadata_list);
             }
-
             in_symbol = false;
-            symbol_name[0] = 0;
+            symbol_name[0] = NULL;
+            printSymbols(symbol_table_root);
         }
     }
+    printf("\n----------FIRSTPHASE-END-----------\n");
     printf("\nDC: %d, IC: %d\n", *DC, *IC);
     for (i = 0; i < *DC; i++)
     {
@@ -104,281 +129,238 @@ int firstAssemblerMain(char *filename, word code_img[255], word data_img[255], u
     }
     for (i = 0; i < *IC; i++)
     {
-        printf("%d\toperation - command: %u\tsourceop: %u\tdestop: %u\ttype: %u\n", i, code_img[i].code.opcode, code_img[i].code.sourceop, code_img[i].code.destop, code_img[i].code.type);
+        printf("%d\toperation - command: %u\tsourceop: %u\tdestop: %u\ttype: %u\n", i, code_img[i].code.code, code_img[i].code.srcop, code_img[i].code.dstop, code_img[i].code.type);
         printf("%d\tinfo std - value: %d\ttype: %u\n", i, code_img[i].info.std.value, code_img[i].info.std.type);
-        printf("%d\tinfo reg - reg1 value: %u\treg2 value: %u\ttype: %u\n", i, code_img[i].info.reg.src_reg, code_img[i].info.reg.dest_reg, code_img[i].info.reg.type);
+        printf("%d\tinfo reg - reg1 value: %u\treg2 value: %u\ttype: %u\n", i, code_img[i].info.reg.src, code_img[i].info.reg.dst, code_img[i].info.reg.type);
     }
-    printSymbols(symbol_table);
+    printSymbols(symbol_table_root);
     return 1;
 }
 
-int encodeOperands(word code_img[255], unsigned char *IC, op_metadata *cmd_info, int operands_num, char *operand1, char *operand2)
+int encodeOperands(words_img code_img, unsigned char IC, cmd_metadata *cmd_info, char *op1, char *op2)
 {
-
-    addressing_values operand1_type, operand2_type;
-    operand1_type = getAddressingType(operand1);
-    operand2_type = getAddressingType(operand2);
+    int size = 0;
+    address_type_value op1_type, op2_type;
     bool is_op1_valid, is_op2_valid;
-    switch (operands_num)
+
+    op1_type = getOperandAddressType(op1);
+    op2_type = getOperandAddressType(op2);
+
+    switch (cmd_info->valid_args_num)
     {
     case 2:
-        code_img[*IC].code.sourceop = operand1_type == none ? 0 : operand1_type;
-        code_img[*IC].code.destop = operand2_type == none ? 0 : operand2_type;
-        (*IC)++;
-        break;
-    case 1:
-        code_img[*IC].code.sourceop = 0;
-        code_img[*IC].code.destop = operand1_type == none ? 0 : operand1_type;
-        (*IC)++;
-        break;
-    case 0:
-        code_img[*IC].code.sourceop = 0;
-        code_img[*IC].code.destop = 0;
-        break;
-    }
-    printf("\ntype op1: '%d' --- op2: '%d'", operand1_type, operand2_type);
-    switch (operands_num)
-    {
-    case 0:
-    {
-        break;
-    }
-    case 1:
-    {
-        is_op1_valid = isValidOperand(cmd_info, operand1_type, false);
-        if (is_op1_valid)
+        is_op1_valid = isValidOperand(cmd_info, op1_type, true);
+        is_op2_valid = isValidOperand(cmd_info, op2_type, false);
+        if (is_op1_valid && is_op2_valid)
         {
+            code_img[IC].code.srcop = op1_type == none ? 0 : op1_type;
+            code_img[IC].code.dstop = op2_type == none ? 0 : op2_type;
+            size++;
 
-            switch (operand1_type)
+            switch (op1_type)
             {
             case immediate:
-                code_img[*IC].info.std.value = atoi(operand1 + 1);
-                code_img[*IC].info.std.type = absolute;
+                code_img[IC + size].info.std.value = atoi(op1 + 1);
+                code_img[IC + size].info.std.type = absolute;
                 break;
             case direct:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
                 break;
             case struct_access:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
-                (*IC)++;
-                code_img[*IC].info.std.value = atoi((strstr(operand1, ".") + 1));
-                code_img[*IC].info.std.type = absolute;
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
+                size++;
+                code_img[IC + size].info.std.value = atoi((strchr(op1, DOT) + 1));
+                code_img[IC + size].info.std.type = absolute;
                 break;
             case dir_register:
-                code_img[*IC].info.reg.dest_reg = atoi(operand1 + 1);
-                code_img[*IC].info.std.type = absolute;
+                code_img[IC + size].info.reg.src = atoi(op1 + 1);
+                code_img[IC + size].info.reg.dst = 0;
+                code_img[IC + size].info.reg.type = absolute;
                 break;
             }
-        }
-        else
-        {
-            /* Error - destnationion operand type is invalid */
-            printf("\ndest error @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        }
-        break;
-    }
-    case 2:
-    {
-        is_op1_valid = isValidOperand(cmd_info, operand1_type, true);
-        is_op2_valid = isValidOperand(cmd_info, operand2_type, false);
-        if (is_op1_valid)
-        {
 
-            switch (operand1_type)
+            size++;
+            switch (op2_type)
             {
             case immediate:
-                code_img[*IC].info.std.value = atoi(operand1 + 1);
-                code_img[*IC].info.std.type = absolute;
+                code_img[IC + size].info.std.value = atoi(op1 + 1);
+                code_img[IC + size].info.std.type = absolute;
                 break;
             case direct:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
                 break;
             case struct_access:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
-                (*IC)++;
-                code_img[*IC].info.std.value = atoi((strstr(operand1, ".") + 1));
-                code_img[*IC].info.std.type = absolute;
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
+                size++;
+                code_img[IC + size].info.std.value = atoi((strchr(op1, DOT) + 1));
+                code_img[IC + size].info.std.type = absolute;
                 break;
             case dir_register:
-                code_img[*IC].info.reg.src_reg = atoi(operand1 + 1);
-                code_img[*IC].info.reg.dest_reg = 0;
-                code_img[*IC].info.std.type = absolute;
-                break;
-            }
-        }
-        else
-        {
-            /* Error - source operand type is invalid */
-            printf("\nsource error @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        }
-        (*IC)++;
-        if (is_op2_valid)
-        {
-            switch (operand2_type)
-            {
-            case immediate:
-                code_img[*IC].info.std.value = atoi(operand1 + 1);
-                code_img[*IC].info.std.type = absolute;
-                break;
-            case direct:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
-                break;
-            case struct_access:
-                code_img[*IC].info.std.value = 0;
-                code_img[*IC].info.std.type = relocateable;
-                (*IC)++;
-                code_img[*IC].info.std.value = atoi((strstr(operand1, ".") + 1));
-                code_img[*IC].info.std.type = absolute;
-                break;
-            case dir_register:
-                if (operand1_type == dir_register)
+                if (op1_type == dir_register)
                 {
-                    code_img[--(*IC)].info.reg.dest_reg = atoi(operand2 + 1);
+                    size--;
+                    code_img[IC + size].info.reg.dst = atoi(op2 + 1);
                 }
                 else
                 {
-                    code_img[*IC].info.reg.src_reg = 0;
-                    code_img[*IC].info.reg.dest_reg = atoi(operand2 + 1);
-                    code_img[*IC].info.std.type = absolute;
+                    code_img[IC + size].info.reg.src = 0;
+                    code_img[IC + size].info.reg.dst = atoi(op2 + 1);
+                    code_img[IC + size].info.std.type = absolute;
                 }
                 break;
+            }
+            size++;
+        }
+        else
+            printf("Error: invalid operand type\n");
+        break;
+    case 1:
+        is_op1_valid = isValidOperand(cmd_info, op1_type, false);
+        if (is_op1_valid)
+        {
+            code_img[IC].code.srcop = 0;
+            code_img[IC].code.dstop = op1_type == none ? 0 : op1_type;
+            size++;
+
+            switch (op1_type)
+            {
+            case immediate:
+                code_img[IC + size].info.std.value = atoi(op1 + 1);
+                code_img[IC + size].info.std.type = absolute;
+                break;
+            case direct:
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
+                break;
+            case struct_access:
+                code_img[IC + size].info.std.value = 0;
+                code_img[IC + size].info.std.type = relocateable;
+                size++;
+                code_img[IC + size].info.std.value = atoi((strchr(op1, DOT) + 1));
+                code_img[IC + size].info.std.type = absolute;
+                break;
+            case dir_register:
+                code_img[IC + size].info.reg.src = 0;
+                code_img[IC + size].info.reg.dst = atoi(op1 + 1);
+                code_img[IC + size].info.reg.type = absolute;
+                break;
+            }
+            size++;
+        }
+        else
+            printf("Error: invalid operand type\n");
+        break;
+    }
+    return size;
+}
+
+int encodeOpline(words_img code_img, char *line, unsigned char IC, const cmd_metadata *cmds_metadata_list)
+{
+    int operands_num = 0, size = 0;
+    cmd_name cmd;
+    label op1, op2;
+    char *tmp;
+    cmd_metadata *cmd_info;
+
+    strncpy(cmd, line, COMMAND_NAME_LENGTH);
+    cmd_info = getCmdMetadata(cmds_metadata_list, cmd);
+    if (cmd_info != NULL)
+    {
+        if (cmd_info->valid_args_num == 0)
+        {
+            if ((int)strlen(line) > COMMAND_NAME_LENGTH)
+                printf("Error: too many operands\n");
+            else
+            {
+                code_img[IC].code.code = cmd_info->code;
+                code_img[IC].code.srcop = immediate;
+                code_img[IC].code.dstop = immediate;
+                code_img[IC].code.type = absolute;
+                size++;
             }
         }
         else
         {
-            /* Error - destination operand type is invalid */
-            printf("\ndest error @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            tmp = (line + COMMAND_NAME_LENGTH + 1);
+            if (tmp == NULL)
+                printf("Error: too few operands\n");
+            else
+            {
+                operands_num = sscanf(tmp, "%[^ ,\t] ,%s", op1, op2);
+
+                if (cmd_info->valid_args_num == operands_num)
+                {
+                    code_img[IC].code.code = cmd_info->code;
+                    code_img[IC].code.type = absolute;
+                    size += encodeOperands(code_img, IC, cmd_info, op1, op2);
+                }
+                else
+                    printf("Error: wrong number of operands\n");
+            }
         }
-        break;
-    }
-    default:
-        printf("\nhere default");
-        break;
-    }
-    return 0;
-}
-
-int encodeOpline(word code_img[255], char *line, unsigned char *IC, Symbol **symbol_table, const op_metadata *methods_list)
-{
-
-    int cmd_len, operands = 0, line_len; /* == L */
-    Label cmd;
-    unsigned short res;
-    Line operand1, operand2;
-    op_metadata *cmd_info;
-    strncpy(cmd, line, 3);
-    printf("\n_______\n`IC: %d --- Line: '%s' --- CMD: %s", *IC, line, cmd);
-    cmd_info = findOpMetadata(methods_list, cmd);
-
-    if (strlen(line) > strlen(cmd))
-    {
-        operands = sscanf(line + 4, "%[^ ,\t] ,%s", operand1, operand2);
-        printf("\n%d -- op1: '%s' --- op2: '%s'", operands, operand1, operand2);
-    }
-    cmd_info = findOpMetadata(methods_list, cmd);
-    if (cmd_info->valid_operands_num == operands)
-    {
-        code_img[*IC].code.opcode = cmd_info->code;
-        code_img[*IC].code.type = absolute;
-        encodeOperands(code_img, IC, cmd_info, operands, operand1, operand2);
-        (*IC)++;
     }
     else
-    {
-        /* Error - invalid number of operands */
-    }
+        printf("Error: Invalid command\n");
 
-    printf("\nINFO: name: %s, operands_num: %d", cmd_info->name, cmd_info->valid_operands_num);
-
-    return res;
+    return size;
 }
 
-int encodeData(char *vars, word *data_img, unsigned char *DC)
+int encodeData(char *line, words_img data_img, unsigned char DC)
 {
-    int number = 0;
-    char *temp;
-    temp = strtok(vars, ",");
-    while (temp != NULL)
+    int num = 0, size = 0;
+    char *tmp;
+    tmp = strtok(line, COMMA_STR);
+
+    while (tmp != NULL)
     {
-        number = atoi(temp);
-        (data_img + (*DC)++)->data.value = number;
-        temp = strtok(NULL, ",");
+        num = atoi(tmp);
+        data_img[DC + size++].data.value = num;
+        tmp = strtok(NULL, COMMA_STR);
     }
-    return *DC;
+    return size;
 }
 
-int encodeString(char *vars, word *data_img, unsigned char *DC)
+int encodeString(char *line, words_img data_img, unsigned char DC)
 {
+    int size = 0;
     char *start, *end;
-    start = strstr(vars, "\"");
-    end = strstr(++start, "\"");
+    start = strchr(line, DBL_QUOTES);
+    end = strchr(++start, DBL_QUOTES);
     while (start < end)
     {
-        (data_img + (*DC)++)->data.value = (*start);
-        start++;
+        data_img[DC + size++].data.value = (*start++);
     }
-    (data_img + (*DC)++)->data.value = 0;
-    return *DC;
+    data_img[DC + size++].data.value = 0;
+    return size;
 }
 
-int encodeStruct(char *vars, word *data_img, unsigned char *DC)
+int encodeStruct(char *line, words_img data_img, unsigned char DC)
 {
-    int number = 0;
+    int num = 0, size = 0;
     char *tmp;
-    tmp = strtok(vars, ",");
-    number = atoi(tmp);
-    (data_img + (*DC)++)->data.value = number;
-    tmp = strtok(NULL, ",");
-    encodeString(tmp, data_img, DC);
+    tmp = strtok(line, COMMA_STR);
+    num = atoi(tmp);
+    data_img[DC + size++].data.value = num;
+    tmp = strtok(NULL, COMMA_STR);
+    size += encodeString(tmp, data_img, DC + size);
 
-    return *DC;
+    return size;
 }
 
-int encodeExtern(char *vars, Symbol **symbol_table)
+int encodeDataline(words_img data_img, char *type, char *line, unsigned char DC)
 {
-    Label name;
-    strcpy(name, trimLeft(strtok(vars, "")));
-    if (!isExistingSymbol(*symbol_table, name))
-    {
-        addSymbol(symbol_table, name, 0, false, true);
-    }
-    else
-    {
-        printf("Error: symbol already existing\n");
-    }
-
-    return 1;
-}
-
-int encodeDataline(word data_img[255], char *line, unsigned char *DC, Symbol **symbol_table)
-{
-    Label type;
-    unsigned short res;
-    Line vars;
-
-    strcpy(type, strtok(line, " "));
-    strcpy(vars, strtok(NULL, ""));
+    int size = 0;
     if (!strcmp(type, DATA))
-        res = encodeData(vars, data_img, DC);
-    else if (!strcmp(type, STRUCT))
-        res = encodeStruct(vars, data_img, DC);
+        size = encodeData(line, data_img, DC);
     else if (!strcmp(type, STRING))
-        res = encodeString(vars, data_img, DC);
-    else if (!strcmp(type, EXTERN))
-        res = encodeExtern(vars, symbol_table);
+        size = encodeString(line, data_img, DC);
+    else if (!strcmp(type, STRUCT))
+        size = encodeStruct(line, data_img, DC);
     else
-    {
-        if (strcmp(type, ENTRY))
-        {
-            printf("Error: Invalid data line\n");
-            res = 0;
-        }
-    }
-
-    return res;
+        printf("Error: Invalid data line");
+    return size;
 }

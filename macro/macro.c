@@ -3,9 +3,10 @@
 #include "macro.h"
 #include "../strings/strings.h"
 
-Macro *newMacro(Label name)
+macro *newMacro(label name)
 {
-    Macro *tmp = (Macro *)malloc(sizeof(Macro));
+    /* todo check if valid label name */
+    macro *tmp = (macro *)malloc(sizeof(macro));
     if (tmp)
     {
         strcpy(tmp->name, name);
@@ -14,51 +15,40 @@ Macro *newMacro(Label name)
     return tmp;
 }
 
-void addMacro(Macro **root, Label name)
+void addMacro(macro **root, label name)
 {
-    Macro *tmp;
-    Macro *new_macro = newMacro(name);
+    macro *tmp;
+    macro *new_macro = newMacro(name);
     if (new_macro)
     {
         tmp = *root;
         *root = new_macro;
         (*new_macro).next = tmp;
-        /*
-        if (*root == NULL)
-        {
-            *root = new_macro;
-        }
-        else
-        {
-            for (curr = *root; curr->next != NULL; curr = curr->next)
-                ;
-            curr->next = new_macro;
-        }*/
     }
 }
 
-void loopMacro(Macro *root)
+void loopMacro(macro *root)
 {
-    Macro *curr;
+    macro *curr;
     for (curr = root; curr != NULL; curr = curr->next)
     {
         printf("%s\t%s", curr->name, curr->text);
     }
 }
 
-Macro *isExistingMacro(Macro *root, char *line)
+macro *isExistingMacro(macro *root, char *line)
 {
-    Macro *curr;
-    char name[MAX_MACRO_NAME_LENGTH];
+    macro *curr;
+    char name[MAX_LABEL_LENGTH];
     sscanf(line, "%s", name);
     for (curr = root; curr != NULL && strcmp(curr->name, name); curr = curr->next)
         ;
     return curr;
 }
 
-void freeMacros(Macro *root)
+void freeMacros(macro *root)
 {
-    Macro *tmp;
+    macro *tmp;
     while (root != NULL)
     {
         tmp = root;
