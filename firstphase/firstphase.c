@@ -12,7 +12,7 @@
 int encodeDataline(words_img data_img, char *type, char *line, unsigned char DC);
 int encodeOpline(words_img code_img, char *line, unsigned char IC, const cmd_metadata *cmds_metadata_list);
 
-int firstphase(char *filename, words_img code_img, words_img data_img, unsigned char *IC, unsigned char *DC, symbol *symbol_table_root, const cmd_metadata *cmds_metadata_list)
+int firstphase(char *filename, words_img code_img, words_img data_img, unsigned char *IC, unsigned char *DC, symbol **symbols_table_root, const cmd_metadata *cmds_metadata_list)
 {
     FILE *fd;
     line full_line, trimed_line;
@@ -43,7 +43,7 @@ int firstphase(char *filename, words_img code_img, words_img data_img, unsigned 
                 strncpy(symbol_name, trimed_line, tmp);
                 symbol_name[tmp] = NULL;
                 if (isValidLabel(symbol_name))
-                    if (!isExistingSymbol(symbol_table_root, symbol_name))
+                    if (!isExistingSymbol(*symbols_table_root, symbol_name))
                         in_symbol = true;
                     else
                         printf("Error: label already exists\n");
@@ -64,8 +64,8 @@ int firstphase(char *filename, words_img code_img, words_img data_img, unsigned 
                     {
 
                         if (isValidLabel(tmp_word))
-                            if (!isExistingSymbol(symbol_table_root, tmp_word))
-                                addSymbol(&symbol_table_root, tmp_word, 0, false, true);
+                            if (!isExistingSymbol(*symbols_table_root, tmp_word))
+                                addSymbol(symbols_table_root, tmp_word, 0, false, true);
                             else
                                 printf("Error: label already exists\n");
                         else
@@ -80,8 +80,8 @@ int firstphase(char *filename, words_img code_img, words_img data_img, unsigned 
                     while (tmp != NULL)
                     {
                         if (isValidLabel(tmp))
-                            if (!isExistingSymbol(symbol_table_root, tmp_word))
-                                addSymbol(&symbol_table_root, tmp_word, 0, false, false);
+                            if (!isExistingSymbol(*symbols_table_root, tmp_word))
+                                addSymbol(symbols_table_root, tmp_word, 0, false, false);
                             else
                                 printf("Error: label already exists\n");
                         else
@@ -101,7 +101,7 @@ int firstphase(char *filename, words_img code_img, words_img data_img, unsigned 
                     rest_line += (tmp + 1);
                     printf("\n rest_line: '%s', tmp_word: '%s'", rest_line, tmp_word);
                     if (in_symbol)
-                        addSymbol(&symbol_table_root, symbol_name, *DC, false, false);
+                        addSymbol(symbols_table_root, symbol_name, *DC, false, false);
                     (*DC) += encodeDataline(data_img, tmp_word, rest_line, *DC);
                 }
             }
@@ -113,27 +113,15 @@ int firstphase(char *filename, words_img code_img, words_img data_img, unsigned 
                     encode the data in data_img and update DC
                 */
                 if (in_symbol)
-                    addSymbol(&symbol_table_root, symbol_name, *IC, true, false);
+                    addSymbol(symbols_table_root, symbol_name, *IC, true, false);
                 (*IC) += encodeOpline(code_img, rest_line, *IC, cmds_metadata_list);
             }
             in_symbol = false;
             symbol_name[0] = NULL;
-            printSymbols(symbol_table_root);
+            printSymbols(*symbols_table_root);
         }
     }
     printf("\n----------FIRSTPHASE-END-----------\n");
-    printf("\nDC: %d, IC: %d\n", *DC, *IC);
-    for (i = 0; i < *DC; i++)
-    {
-        printf("%d\t%d\n", i, data_img[i].data.value);
-    }
-    for (i = 0; i < *IC; i++)
-    {
-        printf("%d\toperation - command: %u\tsourceop: %u\tdestop: %u\ttype: %u\n", i, code_img[i].code.code, code_img[i].code.srcop, code_img[i].code.dstop, code_img[i].code.type);
-        printf("%d\tinfo std - value: %d\ttype: %u\n", i, code_img[i].info.std.value, code_img[i].info.std.type);
-        printf("%d\tinfo reg - reg1 value: %u\treg2 value: %u\ttype: %u\n", i, code_img[i].info.reg.src, code_img[i].info.reg.dst, code_img[i].info.reg.type);
-    }
-    printSymbols(symbol_table_root);
     return 1;
 }
 
