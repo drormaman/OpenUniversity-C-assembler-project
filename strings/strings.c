@@ -35,12 +35,20 @@ char *trimLeft(char *str)
         tmp[j] = str[i];
     }
     tmp[j] = '\0';
+    for (i = j - 1; i >= 0 && isspace(tmp[i]); i--)
+    {
+        tmp[i] = '\0';
+    }
 
     return tmp;
 }
 
 int isEmptyString(const char *s)
 {
+    if (s == NULL)
+    {
+        return 1;
+    }
     while (*s != '\0')
     {
         if (!isspace((unsigned char)*s))

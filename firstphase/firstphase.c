@@ -272,7 +272,7 @@ int encodeOpline(word code_img[255], char *line, unsigned char *IC, Symbol **sym
     Line operand1, operand2;
     op_metadata *cmd_info;
     strncpy(cmd, line, 3);
-    printf("\n_______\n`IC: %d --- Line: %s --- CMD: %s", *IC, line, cmd);
+    printf("\n_______\n`IC: %d --- Line: '%s' --- CMD: %s", *IC, line, cmd);
     cmd_info = findOpMetadata(methods_list, cmd);
 
     if (strlen(line) > strlen(cmd))

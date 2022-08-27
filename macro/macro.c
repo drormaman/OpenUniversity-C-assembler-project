@@ -1,25 +1,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include "macro.h"
+#include "../strings/strings.h"
 
-Macro *newMacro(char *name, char *text)
+Macro *newMacro(Label name)
 {
     Macro *tmp = (Macro *)malloc(sizeof(Macro));
     if (tmp)
     {
         strcpy(tmp->name, name);
-        strcpy(tmp->text, text);
         tmp->next = NULL;
     }
     return tmp;
 }
 
-void addMacro(Macro **root, char *name, char *text)
+void addMacro(Macro **root, Label name)
 {
-    Macro *curr;
-    Macro *new_macro = newMacro(name, text);
+    Macro *tmp;
+    Macro *new_macro = newMacro(name);
     if (new_macro)
     {
+        tmp = *root;
+        *root = new_macro;
+        (*new_macro).next = tmp;
+        /*
         if (*root == NULL)
         {
             *root = new_macro;
@@ -29,7 +33,7 @@ void addMacro(Macro **root, char *name, char *text)
             for (curr = *root; curr->next != NULL; curr = curr->next)
                 ;
             curr->next = new_macro;
-        }
+        }*/
     }
 }
 
