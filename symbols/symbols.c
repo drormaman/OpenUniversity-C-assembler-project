@@ -11,6 +11,7 @@ symbol *newSymbol(label name, unsigned char address, bool isop, bool isext)
         tmp->address = address;
         tmp->isop = isop;
         tmp->isext = isext;
+        tmp->isent = false;
         tmp->next = NULL;
     }
     return tmp;
@@ -23,9 +24,7 @@ void addSymbol(symbol **root, label name, unsigned char address, bool isop, bool
     if (new_symbol)
     {
         if (*root == NULL)
-        {
             *root = new_symbol;
-        }
         else
         {
             for (tmp = *root; tmp->next != NULL; tmp = tmp->next)
@@ -61,7 +60,7 @@ void printSymbols(symbol *root)
     printf("-----------------------------\n");
     for (curr = root; curr != NULL; curr = curr->next)
     {
-        printf("name: %s, address: %u, op: %d, extern: %d\n", curr->name, curr->address, curr->isop, curr->isext);
+        printf("name: %s, address: %u, op: %d, ext: %d, ent: %d\n", curr->name, curr->address, curr->isop, curr->isext, curr->isent);
     }
     printf("-----------------------------\n");
 }

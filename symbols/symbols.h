@@ -10,6 +10,7 @@ typedef struct symbol
     unsigned char address;
     bool isop;
     bool isext;
+    bool isent;
     struct symbol *next;
 } symbol;
 
