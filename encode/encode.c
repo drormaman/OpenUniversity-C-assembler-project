@@ -58,22 +58,22 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
         switch (op1_type)
         {
         case immediate:
-            code_img[IC + size].info.std.value = atoi(op1 + 1);
-            code_img[IC + size].info.std.type = absolute;
+            code_img[IC + size].info.abs.value = atoi(op1 + 1);
+            code_img[IC + size].info.abs.type = absolute;
             break;
         case direct:
             if (tmp_symbol = isExistingSymbol(symbols_table_root, op1))
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
             }
             else
@@ -87,18 +87,18 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
                 size++;
-                code_img[IC + size].info.std.value = atoi(tmp_chr);
-                code_img[IC + size].info.std.type = absolute;
+                code_img[IC + size].info.abs.value = atoi(tmp_chr);
+                code_img[IC + size].info.abs.type = absolute;
             }
             else
                 printf("Error: unknown label. Line %d\n", line_num);
@@ -114,22 +114,22 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
         switch (op2_type)
         {
         case immediate:
-            code_img[IC + size].info.std.value = atoi(op2 + 1);
-            code_img[IC + size].info.std.type = absolute;
+            code_img[IC + size].info.abs.value = atoi(op2 + 1);
+            code_img[IC + size].info.abs.type = absolute;
             break;
         case direct:
             if (tmp_symbol = isExistingSymbol(symbols_table_root, op2))
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
             }
             else
@@ -143,18 +143,18 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
                 size++;
-                code_img[IC + size].info.std.value = atoi(tmp_chr);
-                code_img[IC + size].info.std.type = absolute;
+                code_img[IC + size].info.abs.value = atoi(tmp_chr);
+                code_img[IC + size].info.abs.type = absolute;
             }
             else
                 printf("Error: unknown label. Line %d\n", line_num);
@@ -169,7 +169,7 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
             {
                 code_img[IC + size].info.reg.src = 0;
                 code_img[IC + size].info.reg.dst = atoi(op2 + 1);
-                code_img[IC + size].info.std.type = absolute;
+                code_img[IC + size].info.reg.type = absolute;
             }
             break;
         }
@@ -181,22 +181,22 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
         switch (op1_type)
         {
         case immediate:
-            code_img[IC + size].info.std.value = atoi(op1 + 1);
-            code_img[IC + size].info.std.type = absolute;
+            code_img[IC + size].info.abs.value = atoi(op1 + 1);
+            code_img[IC + size].info.abs.type = absolute;
             break;
         case direct:
             if (tmp_symbol = isExistingSymbol(symbols_table_root, op1))
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
             }
             else
@@ -210,18 +210,18 @@ int encodeMissingOperands(words_img code_img, unsigned char IC, cmd_metadata *cm
             {
                 if (tmp_symbol->isext)
                 {
-                    code_img[IC + size].info.std.value = 0;
-                    code_img[IC + size].info.std.type = external;
+                    code_img[IC + size].info.rel.value = 0;
+                    code_img[IC + size].info.rel.type = external;
                     addLocation(&tmp_symbol, IC + size);
                 }
                 else
                 {
-                    code_img[IC + size].info.std.value = tmp_symbol->address;
-                    code_img[IC + size].info.std.type = relocateable;
+                    code_img[IC + size].info.rel.value = tmp_symbol->address;
+                    code_img[IC + size].info.rel.type = relocateable;
                 }
                 size++;
-                code_img[IC + size].info.std.value = atoi(tmp_chr);
-                code_img[IC + size].info.std.type = absolute;
+                code_img[IC + size].info.abs.value = atoi(tmp_chr);
+                code_img[IC + size].info.abs.type = absolute;
             }
             else
                 printf("Error: unknown label. Line %d\n", line_num);

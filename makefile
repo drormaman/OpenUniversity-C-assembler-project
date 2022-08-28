@@ -16,5 +16,5 @@ symbols.o: ./symbols/symbols.c ./symbols/symbols.h ./assembler/assembler.h ./str
 	gcc -c -ansi -pedantic -Wall ./symbols/symbols.c -o symbols.o
 methods.o: ./methods/methods.c ./methods/methods.h ./strings/strings.h
 	gcc -c -ansi -pedantic -Wall ./methods/methods.c -o methods.o
-output.o: ./output/output.c ./output/output.h ./assembler/assembler.h ./strings/strings.h ./files/files.h ./symbols/symbols.h
+output.o: ./output/output.c ./output/output.h ./assembler/assembler.h ./strings/strings.h ./files/files.h ./symbols/symbols.h ./methods/methods.h
 	gcc -c -ansi -pedantic -Wall ./output/output.c -o output.o

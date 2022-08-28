@@ -1,19 +1,20 @@
 #include <stdio.h>
+#include <string.h>
 #include "../files/files.h"
 #include "../assembler/assembler.h"
 #include "../strings/strings.h"
 #include "../symbols/symbols.h"
+#include "../methods/methods.h"
 #include "output.h"
 
 char *convertDecTo32(int num, bool padded)
 {
     char base_nums[BASE] = {'!', '@', '#', '$', '%', '^', '&', '*', '<', '>', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
-    int mod, div;
+    unsigned int mod, div;
     static base32_word result = {0};
 
-    if (num < BASE)
+    if (!padded && num < BASE)
     {
-        result[1] = padded ? base_nums[0] : 0;
         result[0] = base_nums[num];
     }
     else
@@ -25,6 +26,34 @@ char *convertDecTo32(int num, bool padded)
     }
 
     return result;
+}
+
+char *convertBitsTo32(word data, bool padded)
+{
+    char *res;
+    int num = 0;
+    if (data.bits.b0)
+        num |= 1;
+    if (data.bits.b1)
+        num |= 2;
+    if (data.bits.b2)
+        num |= 4;
+    if (data.bits.b3)
+        num |= 8;
+    if (data.bits.b4)
+        num |= 16;
+    if (data.bits.b5)
+        num |= 32;
+    if (data.bits.b6)
+        num |= 64;
+    if (data.bits.b7)
+        num |= 128;
+    if (data.bits.b8)
+        num |= 256;
+    if (data.bits.b9)
+        num |= 512;
+    res = convertDecTo32(num, padded);
+    return res;
 }
 
 void writeObjectFile(char *filename, words_img code_img, unsigned char IC, unsigned char DC)
@@ -40,7 +69,9 @@ void writeObjectFile(char *filename, words_img code_img, unsigned char IC, unsig
     for (i = 0; i < IC + DC; i++)
     {
         strcpy(address, convertDecTo32(i + MEM_SKIP, true));
-        strcpy(value, convertDecTo32(code_img[i].data.value, true));
+        if (i < IC && code_img[i].info.rel.type == relocateable)
+            code_img[i].info.rel.type += MEM_SKIP;
+        strcpy(value, convertBitsTo32((word)code_img[i].data, true));
         fprintf(fdw, "%s\t\t%s\n", address, value);
     }
 }
