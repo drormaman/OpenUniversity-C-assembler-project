@@ -12,6 +12,7 @@ symbol *newSymbol(label name, unsigned char address, bool isop, bool isext)
         tmp->isop = isop;
         tmp->isext = isext;
         tmp->isent = false;
+        tmp->access_address = NULL;
         tmp->next = NULL;
     }
     return tmp;
@@ -54,13 +55,15 @@ void freeSymbols(symbol *root)
     }
 }
 
-void printSymbols(symbol *root)
+void addLocation(symbol **sym, unsigned char address)
 {
-    symbol *curr;
-    printf("-----------------------------\n");
-    for (curr = root; curr != NULL; curr = curr->next)
+    location *new_loc;
+
+    new_loc = (location *)malloc(sizeof(location));
+    if (new_loc)
     {
-        printf("name: %s, address: %u, op: %d, ext: %d, ent: %d\n", curr->name, curr->address, curr->isop, curr->isext, curr->isent);
+        new_loc->address = address;
+        new_loc->next = (**sym).access_address;
+        (**sym).access_address = new_loc;
     }
-    printf("-----------------------------\n");
 }

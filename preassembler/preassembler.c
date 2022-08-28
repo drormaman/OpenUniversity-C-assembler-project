@@ -12,12 +12,10 @@ void preAssembler(char *filename)
     label new_macro_name, tmp_word;
     line line, trimed_line;
     bool in_macro = false, is_empty_line = false;
-    int i = 0;
 
     fdr = openReadFile(filename, INPUT_FILE_EXT);
     fdw = openWriteFile(filename, AFTER_MACROS_FILE_EXT);
 
-    printf("\n----------MACRO-START-----------\n");
     while (fgets(line, MAX_LINE_LENGTH, fdr) != NULL)
     {
         is_empty_line = isEmptyString(line);
@@ -51,7 +49,6 @@ void preAssembler(char *filename)
         }
         tmp_word[0] = '\0';
     }
-    printf("\n----------MACRO-END-----------");
 
     fclose(fdr);
     fclose(fdw);

@@ -1,5 +1,5 @@
-#ifndef FILES_S
-#define FILES_S
+#ifndef FILES_H
+#define FILES_H
 
 #include <stdio.h>
 
